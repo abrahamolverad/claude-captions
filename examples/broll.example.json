@@ -1,0 +1,26 @@
+{
+ "size": "split",
+ "clips": [
+  {
+   "name": "black_october",
+   "src": "shots/headline.png",
+   "dur": 2.4,
+   "focus": {"box": [64, 283, 1143, 556], "zoom": 1.1, "t": 0.8},
+   "circles": [{"box": [230, 276, 800, 362], "t": 0.9}],
+   "notes": [{"text": "le llaman así", "at": [900, 640], "t": 1.4, "px": 70}]
+  },
+  {
+   "name": "footage",
+   "src": "clips/news.mp4",
+   "dur": 1.6,
+   "video_start": 39.2,
+   "speed": 2.0,
+   "cam": [[0, 960, 540, 0.89, 480], [1.6, 960, 540, 0.94, 480]]
+  },
+  {
+   "name": "todo",
+   "dur": 7.0,
+   "checklist": {"title": "qué hacer hoy", "items": [["actualiza tu teléfono", 0.15], ["cambia tus contraseñas", 2.4], ["2 pasos con app", 4.6]]}
+  }
+ ]
+}

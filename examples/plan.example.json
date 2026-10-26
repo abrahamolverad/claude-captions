@@ -1,0 +1,26 @@
+{
+ "video": "talk.mp4",
+ "words": "words.json",
+ "mask": "mask.raw",
+ "out": "final.mp4",
+ "hook": {
+  "lines": [["black october:", 80, 380, false], ["alerta", 260, 650, true], ["en +10 países", 80, 1330, false]],
+  "end": 4.45
+ },
+ "no_captions": [[0, 4.45]],
+ "emphasis": ["emergencia", "october", "hackeando", "70%", "contraseñas", "banco", "escudo"],
+ "keep_caps": ["PHP", "AI", "IA"],
+ "replace": {"Redway": "Railway"},
+ "keep_together": [["black", "october"], ["comenta", "escudo"]],
+ "style": {"body_y": 1340, "seam_y": 960, "split_y0": 400},
+ "broll": [
+  {"file": "broll/black_october.mp4", "at": 8.3, "dur": 2.4, "layout": "split"},
+  {"file": "broll/todo.mp4", "at": 25.5, "dur": 7.0, "layout": "split"}
+ ],
+ "floaters": [
+  {"img": "maps/espana.png", "t0": 0.0, "t1": 2.6, "behind": true, "keys": [[0, 200, 830, 1.0, -6], [2.6, 1260, 760, 1.1, 4]]},
+  {"img": "maps/japon.png", "t0": 0.85, "t1": 3.4, "behind": true, "keys": [[0.85, 950, 990, 0.9, 8], [3.4, -170, 940, 1.0, -4]]},
+  {"img": "maps/estados_unidos.png", "t0": 1.5, "t1": 4.0, "behind": false, "keys": [[1.5, 170, 1580, 1.0, -4], [4.0, 1200, 1470, 1.2, 3]]}
+ ],
+ "sfx": []
+}
