@@ -16,6 +16,23 @@ Everything is rendered locally with Python + ffmpeg. Scripts live in `scripts/`;
 - Windows: `<skill>\.venv\Scripts\python.exe <skill>\scripts\<script>.py …`
 (`<skill>` is this folder, usually `~/.claude/skills/captions`.) Keep every working file in a `work/` folder next to the user's video.
 
+## Quick commands (`/captions <command> …`)
+The user may type one of these right after `/captions` (Spanish or English word). Each one is a complete job:
+run the steps below that it needs (0 → 3 always: setup if missing, cut, transcribe, mask), add its effect, render, check frames,
+and hand back `work/final.mp4`. Without a command (`/captions video.mp4` or plain words) do the full edit: cut + captions + hook.
+
+| Command | What to make |
+|---|---|
+| `/captions VIDEO` | Full edit: drop mistakes and repeated takes, word-by-word captions, a hook written from what the video says. |
+| `/captions hook VIDEO "small / BIG / small"` (`gancho`) | That exact 3-line hook from frame 0, the BIG word behind the head. |
+| `/captions maps VIDEO País 1, País 2, …` (`mapas`) | Each country's map floats past (behind the head when possible) at the moment it is said; no word captions during the list. |
+| `/captions split VIDEO IMAGE "words to circle"` (`dividida`) | Split screen: the image on top (1080x960) while the related phrase is said, red circle around those words, captions on the seam. |
+| `/captions circle VIDEO IMAGE "words to circle" ["note"]` (`circulo`) | Full-screen image with a push-in, red circle and an optional handwritten note, over the matching phrase. |
+| `/captions checklist VIDEO step 1; step 2; step 3` | Animated checklist (split screen) that ticks each step when it is said, or every ~1.2 s if the steps are not spoken. |
+| `/captions behind VIDEO "WORD"` (`detras`) | One big word behind the speaker's head at the most important moment (not only the hook). |
+
+Find words to circle in an image with `grid.py` (or ask the user if they are not visible). If a file is missing, ask for it.
+
 ## 0. First run (once)
 If `<skill>/.venv` does not exist:
 1. Check `ffmpeg -version`. Missing → macOS `brew install ffmpeg`, Windows `winget install Gyan.FFmpeg` (then a new terminal).

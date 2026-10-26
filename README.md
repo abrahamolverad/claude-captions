@@ -39,6 +39,18 @@ Abre Claude Code en la carpeta de tu video y escríbele, por ejemplo:
 - «Cuando digo los países, que pasen sus mapas detrás de mí.»
 - «En la parte de qué hacer, pon un checklist que se vaya palomeando.»
 
+O usa los comandos cortos:
+
+| Comando | Qué hace |
+|---|---|
+| `/captions mi-video.mp4` | Edición completa: quita errores, captions palabra por palabra y hook |
+| `/captions hook mi-video.mp4 "esto cambió / TODO / en 24 horas"` | Ese hook desde el primer segundo, la palabra grande detrás de tu cabeza |
+| `/captions mapas mi-video.mp4 España, Japón, México` | Los mapas pasan detrás de ti cuando dices cada país |
+| `/captions split mi-video.mp4 captura.png "texto a encerrar"` | Pantalla dividida con la captura arriba y un círculo rojo |
+| `/captions circulo mi-video.mp4 captura.png "texto" "nota"` | La captura a pantalla completa con círculo y nota a mano |
+| `/captions checklist mi-video.mp4 paso 1; paso 2; paso 3` | Un checklist que se palomea |
+| `/captions detras mi-video.mp4 "PALABRA"` | Una palabra grande detrás de tu cabeza |
+
 Claude te deja `work/final.mp4` y te dice qué cortó. La música agrégala en Instagram o TikTok, desde su biblioteca con licencia.
 
 ## Qué incluye
