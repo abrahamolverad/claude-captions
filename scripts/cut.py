@@ -14,7 +14,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from common import duration, ffmpeg, need, save_json
+from common import duration, ffmpeg, filter_script, need, save_json
 from transcribe import transcribe
 
 ap = argparse.ArgumentParser()
@@ -76,7 +76,7 @@ graph = ";".join(vf + af + ["".join(f"[v{i}][a{i}]" for i in range(n)) + f"conca
                             "[vc]eq=contrast=1.03:saturation=1.05,format=yuv420p[vo]", f"[ac]{voice}[ao]"])
 (work / "filter.txt").write_text(graph, encoding="utf-8")
 pre = work / "talk_pre.mp4"
-ffmpeg("-i", raw, "-filter_complex_script", work / "filter.txt", "-map", "[vo]", "-map", "[ao]", "-c:v", "libx264", "-preset", "medium",
+ffmpeg("-i", raw, *filter_script(work / "filter.txt"), "-map", "[vo]", "-map", "[ao]", "-c:v", "libx264", "-preset", "medium",
        "-crf", "16", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-ar", "48000", pre)
 
 r = subprocess.run([need("ffmpeg"), "-hide_banner", "-nostats", "-i", str(pre), "-af", "loudnorm=I=-16:TP=-1.5:LRA=9:print_format=json",

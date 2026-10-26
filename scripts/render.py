@@ -27,7 +27,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
-from common import FPS, H, W, caption_font, duration, ffmpeg, load_json, need
+from common import FPS, H, W, caption_font, duration, ffmpeg, filter_script, load_json, need
 
 plan_path = Path(sys.argv[1]).resolve()
 P = load_json(plan_path)
@@ -250,7 +250,7 @@ for i, o in enumerate(P.get("broll", []), start=1):
     fc.append(f"{last}[b{i}]overlay=0:0:eof_action=pass:enable='between(t,{o['at']},{o['at'] + o['dur']})'[v{i}]"); last = f"[v{i}]"
 fc.append(f"{last}null[vo]")
 graph = tmp.with_suffix(".txt"); graph.write_text(";".join(fc), encoding="utf-8")
-ffmpeg(*inputs, "-filter_complex_script", graph, "-map", "[vo]", "-an", "-c:v", "libx264", "-crf", "14", "-preset", "fast", "-t", f"{END:.3f}", tmp)
+ffmpeg(*inputs, *filter_script(graph), "-map", "[vo]", "-an", "-c:v", "libx264", "-crf", "14", "-preset", "fast", "-t", f"{END:.3f}", tmp)
 
 dec = subprocess.Popen([need("ffmpeg"), "-loglevel", "error", "-i", str(tmp), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
 vid = OUT.with_name(OUT.stem + "_video.mp4")

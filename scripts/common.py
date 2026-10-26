@@ -35,6 +35,20 @@ def ffmpeg(*args, quiet=True):
     return r
 
 
+_fc_opt = None
+
+
+def filter_script(path):
+    """ffmpeg args that read a filter graph from a file: `-/filter_complex FILE` (ffmpeg 7+), `-filter_complex_script FILE` before"""
+    global _fc_opt
+    if _fc_opt is None:
+        import re
+        v = subprocess.run([need("ffmpeg"), "-version"], capture_output=True, text=True).stdout.split("\n")[0]
+        m = re.search(r"version n?(\d+)\.", v)
+        _fc_opt = "-/filter_complex" if (not m or int(m.group(1)) >= 7) else "-filter_complex_script"
+    return [_fc_opt, str(path)]
+
+
 def duration(path):
     r = subprocess.run([need("ffprobe"), "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
                        capture_output=True, text=True)
