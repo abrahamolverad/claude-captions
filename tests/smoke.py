@@ -46,8 +46,29 @@ with tempfile.TemporaryDirectory() as tmp:
         "broll": [{"file": "broll/page.mp4", "at": 1.4, "dur": 1.2, "layout": "split"}, {"file": "broll/todo.mp4", "at": 2.8, "dur": 1.0, "layout": "full"}],
         "floaters": [{"img": "maps/espana.png", "t0": 0, "t1": 1.2, "behind": True, "keys": [[0, 200, 830, 1.0, -6], [1.2, 900, 760, 1.1, 4]]}]},
         ensure_ascii=False), encoding="utf-8")
+    (work / "fx.json").write_text(json.dumps({"video": "talk.mp4", "out": "talk_fx.mp4",
+        "zoom": [{"at": 0.4, "back": 1.2, "scale": 1.3, "dur": 0.3}], "bw": [[2.0, 2.6]], "black": [[1.5, 1.6]],
+        "tint": [{"t0": 2.8, "t1": 3.2, "hue": 25}]}), encoding="utf-8")
+    run(S / "fx.py", work / "fx.json")
+    assert (work / "talk_fx.mp4").stat().st_size > 10_000
+    plan = json.loads((work / "plan.json").read_text(encoding="utf-8"))
+    plan["colors"] = {"captions": [255, 214, 0]}
+    (work / "plan.json").write_text(json.dumps(plan, ensure_ascii=False), encoding="utf-8")
     run(S / "render.py", work / "plan.json")
     run(S / "frames.py", work / "final.mp4", work / "check.jpg", "0.5", "1.8", "3.2")
+    sticker = Image.new("RGB", (120, 100), "white"); ImageDraw.Draw(sticker).rectangle((20, 20, 100, 80), fill=(214, 120, 70))
+    sticker.save(work / "mascot.png")
+    (work / "overlay.json").write_text(json.dumps({"video": "final.mp4", "out": "final_overlay.mp4",
+        "subtitles": [{"t0": 0.3, "t1": 1.4, "lines": [{"text": "今、字幕のテスト。", "lang": "ja", "from": 0.3},
+                                                     {"text": "अब सबटाइटल की जाँच।", "lang": "hi", "from": 0.6},
+                                                     {"text": "Now a subtitle test.", "lang": "en", "from": 0.9}]}],
+        "stickers": [{"emoji": "🇲🇽", "t0": 1.0, "t1": 2.0, "x": 210, "y": 240, "w": 260},
+                     {"img": "mascot.png", "t0": 0.0, "t1": 1.0, "x": 215, "y": 470, "w": 300, "remove_white": True, "rot": [-3, 3]}],
+        "counters": [{"t0": 2.0, "t1": 3.0, "value": 125000, "label": "habitantes", "icon": "people"}],
+        "music": [{"file": "raw.mp4", "at": 1.0, "gain": 0.1}]}, ensure_ascii=False), encoding="utf-8")
+    (work / "raw.mp4").write_bytes((w / "raw.mp4").read_bytes())
+    run(S / "overlay.py", work / "overlay.json")
+    assert (work / "final_overlay.mp4").stat().st_size > 50_000, "final_overlay.mp4 missing"
     out = work / "final.mp4"
     assert out.exists() and out.stat().st_size > 50_000, "final.mp4 missing"
     print("SMOKE OK", out.stat().st_size, "bytes")

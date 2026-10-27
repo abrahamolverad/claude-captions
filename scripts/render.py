@@ -11,6 +11,7 @@ PLAN = {
   "no_captions": [[0, 3.5]],                       time ranges without word captions (the hook already says it)
   "emphasis": ["alerta", "millones"],              preferred big words (otherwise the longest content word of each block)
   "keep_caps": ["PHP", "IA"], "replace": {"Redway": "Railway"}, "keep_together": [["black", "october"]], "retime": {"funciona.": 22.75},
+  "colors": {"azul": [64, 140, 255], "amarillo": [255, 214, 0]},   caption words drawn in a colour (the word itself, lowercase)
   "style": {"small": 72, "big": 150, "max_w": 860, "max_words": 4, "body_y": 1340, "broll_y": 1420,
             "seam_y": 960, "split_y0": 400, "seam_small": 62, "seam_big": 124},
   "broll": [{"file": "broll/headline.mp4", "at": 4.45, "dur": 2.4, "layout": "split" | "full"}],
@@ -47,13 +48,13 @@ def text_w(t, px):
     return sum(f.getlength(c) for c in t) + TRACK * px * (len(t) - 1)
 
 
-def sprite(t, px, shadow=150, blur=10):
+def sprite(t, px, shadow=150, blur=10, color="white"):
     f = caption_font(px)
     asc, desc = f.getmetrics()
     w, h = int(text_w(t, px)) + 2 * blur + 8, asc + desc + 2 * blur + 8
     txt = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(txt); x = blur + 4
     for c in t:
-        d.text((x, blur + 4), c, font=f, fill="white"); x += f.getlength(c) + TRACK * px
+        d.text((x, blur + 4), c, font=f, fill=color); x += f.getlength(c) + TRACK * px
     a = Image.fromarray(np.asarray(txt)[..., 3]).filter(ImageFilter.GaussianBlur(blur))
     a = Image.fromarray((np.asarray(a).astype(float) * shadow / 255).astype(np.uint8))
     out = Image.new("RGBA", (w, h + 4), (0, 0, 0, 0))
@@ -79,6 +80,7 @@ for w in words:
         w["t0"] = P["retime"][w["w"]]
 KEEP_CAPS = set(P.get("keep_caps", []))
 EMPH = set(P.get("emphasis", []))
+COLORS = {k: tuple(v) for k, v in P.get("colors", {}).items()}      # word -> [r, g, b]; everything else stays white
 FUNC = set(P.get("function_words", [])) or {
     "a", "al", "el", "la", "los", "las", "un", "una", "de", "del", "y", "o", "que", "en", "mi", "tu", "su", "ese", "esa", "este", "esta",
     "le", "lo", "con", "por", "para", "te", "me", "ni", "se", "es", "cómo", "quién", "cuántos", "muy", "va", "vas", "sí",
@@ -144,7 +146,7 @@ for ci, c in enumerate(chunks):
         x = -(sum(text_w(texts[i], px) for i in line) + space(px) * (len(line) - 1)) / 2
         for i in line:
             blur = 14 if broll else 10
-            spr, b0 = sprite(texts[i], px, shadow=210 if broll else 150, blur=blur)
+            spr, b0 = sprite(texts[i], px, shadow=210 if broll else 150, blur=blur, color=COLORS.get(texts[i], "white"))
             items.append({"spr": spr, "x": x - (blur + 4), "base": b0, "baseline": y + lh, "t_in": c0 if i == 0 else c[i]["t0"] - 0.03})
             x += text_w(texts[i], px) + space(px)
         y += lh + 0.10 * sm

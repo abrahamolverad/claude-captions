@@ -7,6 +7,11 @@ description: |
   floating country maps that pass behind/in front of the speaker, and an animated checklist.
   Use when the user drops a video and asks to "add captions", "edit this video", "subtítulos", "edita este video",
   "pon captions", "hazlo como Reel", "text behind my head", "split screen", "mapas de países", or similar.
+  Also the DICTATION mode: the person records the edit commands ON CAMERA ("ponle captions", "pon el color azul",
+  "haz un close in", "subtítulos en japonés", "pon la bandera de México aquí", "corta la escena", "blanco y negro",
+  "pon música", "un millón de followers") and Claude cuts the hesitations and executes each command at the moment it is said.
+  Use it when the user says "dictado", "sigue las instrucciones del video", "haz lo que digo en el video", "dictation",
+  "follow the commands in the video", "edit it the way I say it".
 ---
 
 # captions · Helvetica captions + B-roll for vertical videos
@@ -30,6 +35,7 @@ and hand back `work/final.mp4`. Without a command (`/captions video.mp4` or plai
 | `/captions circle VIDEO IMAGE "words to circle" ["note"]` (`circulo`) | Full-screen image with a push-in, red circle and an optional handwritten note, over the matching phrase. |
 | `/captions checklist VIDEO step 1; step 2; step 3` | Animated checklist (split screen) that ticks each step when it is said, or every ~1.2 s if the steps are not spoken. |
 | `/captions behind VIDEO "WORD"` (`detras`) | One big word behind the speaker's head at the most important moment (not only the hook). |
+| `/captions dictado VIDEO` (`dictation`) | The person dictates the edit on camera: cut the hesitations, keep the last take of each command and execute every command where it is said (section "Dictation mode"). |
 
 Find words to circle in an image with `grid.py` (or ask the user if they are not visible). If a file is missing, ask for it.
 
@@ -85,7 +91,45 @@ Run `render.py work/plan.json` → `work/final.mp4`.
 - circle not around the right words → fix the box from `grid.py`.
 Re-render after each fix. Then tell the user where `final.mp4` is, what was cut, and anything you could not verify.
 
+## Dictation mode (`/captions dictado VIDEO`)
+The person talks to the camera and SAYS the edit: every sentence is either content or a command, and a command applies from
+the moment its key word is spoken. The video is usually improvised: cut every hesitation, false start and "ok / no / wait".
+1. `transcribe.py` the raw file. Read it as a script: list each command with its time, and mark retakes (the same command said
+   twice → keep the LAST complete one; "pon música… pon una música motivacional" → keep the second). Drop fillers ("ok",
+   "eso", "no", "lo voy a dejar así") and anything after the final call to action. Keep the person's speed: `--keep` ranges
+   tight, `--protect` only where a command needs a beat to land (music starts, a flag pops).
+2. `cut.py` with those ranges → `work/talk.mp4`, `work/words.json`. Read the cut transcript: whisper often mangles command
+   words ("close in" → "closing", "hindi" → "indie"): fix them with `replace` in the plan (never invent words).
+3. Build the timeline from `words.json` (cut timeline) and map each command to its effect:
+
+| What they say (es / en) | Effect | Where |
+|---|---|---|
+| «ponle captions», «todos estos captions» | word-by-word captions as always | plan.json |
+| «pon el color azul / amarillo / naranja» | that caption WORD in that colour (`colors`), the picture stays normal | plan.json `colors` |
+| «haz un close in» / «close out» (zoom in / out) | punch-in 1.3 at the word, back out at "close out" | fx.json `zoom` |
+| «subtítulos en japonés, hindi e inglés» | translated subtitle lines under the captions, each one appearing when its language is named, and still translating the NEXT sentence | overlay.json `subtitles` |
+| «la bandera de México aquí … Estados Unidos acá» | flag emoji where the person points (look at the frame: left or right, top) | overlay.json `stickers` (emoji) |
+| «corta la escena» (cut) | 5–6 black frames right after the sentence + an impact SFX | fx.json `black`, plan `sfx` |
+| «hazme en blanco y negro» | B&W from the word "negro" until the next command that brightens the mood ("música alegre") or the end | fx.json `bw` |
+| «pon música», «música motivacional», «cambia la música», «música alegre» | a track from the user's `music/` folder at that word, swapped at the next music command, low (gain 0.12–0.2) under the voice | overlay.json `music` |
+| «pon números…», «un millón de followers», «125 mil habitantes» | counter that counts up above the head with the label | overlay.json `counters` |
+| «ponle un icono de gente» | icon next to that counter (`icon: "people"`, any emoji, or an image) | overlay.json `counters.icon` |
+| «el hook que diga…», «agrega la mascota / este sticker» | hook words placed AROUND the person (`floaters` of word PNGs, the big one `behind`) and the image as a sticker from frame 0; `remove_white` strips a white background | plan `floaters` / overlay `stickers` |
+
+   Commands the table does not cover: do the nearest thing with the same tools and say so. Music only from files the user
+   gives (licensed); with no files, leave the music out and tell them.
+4. Order of the render: `fx.py` on `talk.mp4` → `talk_fx.mp4` (zoom, B&W, black, tint) → `mask.py` on `talk.mp4` (the hook is
+   never zoomed) → `render.py` with `"video": "talk_fx.mp4"` (captions, colours, hook, floaters, SFX) → `overlay.py`
+   (subtitles, stickers, counters, music) → `work/final.mp4`.
+5. Check frames at every command (`frames.py`): the colour is on the right word, the zoom lands on the word, flags sit where
+   the hand points, counters never cover the face, subtitles stay above y 1750. Tell the user what was cut and every judgment
+   call you made (which sentence the subtitles translate, when colour came back after B&W, which track went where).
+
+Hook in this mode: if the person asks for a phrase ("Claude, el mejor editor de videos") render each word group as a PNG
+(`word_sprite` in overlay.py or `sprite` in render.py) and place them around the head with `floaters` (`t0` slightly negative so
+all are complete at frame 0; the big word `behind: true`); a mascot or logo goes in as a sticker next to them.
+
 ## Style rules (what makes it look good)
-- lowercase everywhere except acronyms; white, no boxes, no colours; at most ONE big word per block;
+- lowercase everywhere except acronyms; white, no boxes; colour only when the person asks for it on a word (`colors`); at most ONE big word per block;
 - captions never over the mouth; nothing outside x 100–980 or below y 1600 (Instagram/TikTok buttons and captions);
 - music: leave it out; the user adds a licensed song in the app.
